@@ -59,6 +59,10 @@
 				} );
 			}
 			frame.open();
+			// Si sceglie un'immagine esistente: si parte dalla Libreria, non
+			// dal caricamento (che WordPress mostra se la libreria non è
+			// ancora arrivata al momento dell'apertura).
+			frame.content.mode( 'browse' );
 		} );
 	}
 
