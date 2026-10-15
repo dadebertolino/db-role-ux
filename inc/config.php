@@ -98,6 +98,14 @@ function db_role_ux_config() {
 		 * Da tenere false in produzione.
 		 */
 		'debug'              => false,
+
+		/*
+		 * BACHECA PER RUOLO: widget da nascondere, widget aggiunti, link nel
+		 * menu laterale e nella admin bar, per slug di ruolo. Si modificano
+		 * da Strumenti → DB Role UX → Bacheca per ruolo (opzione
+		 * db_role_ux_roles); il filtro qui sotto ha l'ultima parola.
+		 */
+		'roles'              => db_role_ux_stored_roles(),
 	);
 
 	/*

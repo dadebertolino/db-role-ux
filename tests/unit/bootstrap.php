@@ -36,6 +36,7 @@ $GLOBALS['__dbru_calls']      = array();
 $GLOBALS['__dbru_user']       = null;
 $GLOBALS['__dbru_roles']      = array();
 $GLOBALS['__dbru_is_admin']   = false;
+$GLOBALS['__dbru_options']    = array();
 
 /* --- Filtri e azioni (priorità e accepted_args come in WordPress) --------- */
 
@@ -81,6 +82,21 @@ function apply_filters( $hook, $value ) {
 }
 function add_shortcode( $tag, $cb ) {
 	$GLOBALS['__dbru_shortcodes'][ $tag ] = $cb;
+}
+
+/* --- Opzioni --------------------------------------------------------------- */
+
+function get_option( $key, $default = false ) {
+	return array_key_exists( $key, $GLOBALS['__dbru_options'] ) ? $GLOBALS['__dbru_options'][ $key ] : $default;
+}
+function update_option( $key, $value, $autoload = null ) {
+	$GLOBALS['__dbru_calls']['update_option'][] = array( $key, $autoload );
+	$GLOBALS['__dbru_options'][ $key ]          = $value;
+	return true;
+}
+function delete_option( $key ) {
+	unset( $GLOBALS['__dbru_options'][ $key ] );
+	return true;
 }
 
 /* --- Utenti, ruoli, capability --------------------------------------------- */
@@ -160,6 +176,9 @@ function count_users() {
 function remove_meta_box( $id, $screen, $context ) {
 	$GLOBALS['__dbru_calls']['remove_meta_box'][] = array( $id, $screen, $context );
 }
+function wp_add_dashboard_widget( $id, $title, $cb, $control = null, $args = null, $context = 'normal' ) {
+	$GLOBALS['__dbru_calls']['wp_add_dashboard_widget'][] = array( $id, $title, $cb, $context );
+}
 function remove_menu_page( $page ) {
 	$GLOBALS['__dbru_calls']['remove_menu_page'][] = $page;
 }
@@ -169,6 +188,27 @@ function add_management_page( $page_title, $menu_title, $capability, $slug, $cb 
 }
 function wp_enqueue_style( $handle, $src = '', $deps = array(), $ver = false ) {
 	$GLOBALS['__dbru_calls']['wp_enqueue_style'][ $handle ] = array( $src, $deps, $ver );
+}
+function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
+	$GLOBALS['__dbru_calls']['wp_enqueue_script'][ $handle ] = array( $src, $deps, $ver );
+}
+function check_admin_referer( $action ) {
+	if ( ! isset( $_REQUEST['_wpnonce'] ) || 'nonce-' . $action !== $_REQUEST['_wpnonce'] ) {
+		throw new RuntimeException( 'nonce non valido', 403 );
+	}
+	return 1;
+}
+function wp_nonce_field( $action ) {
+	echo '<input type="hidden" name="_wpnonce" value="nonce-' . esc_attr( $action ) . '">';
+}
+
+/**
+ * wp_safe_redirect() seguito da exit: l'eccezione ferma il flusso nel test.
+ */
+class DBRU_Test_Redirect extends RuntimeException { // phpcs:ignore Generic.Files.OneObjectStructurePerFile.MultipleFound
+}
+function wp_safe_redirect( $location ) {
+	throw new DBRU_Test_Redirect( $location );
 }
 function is_admin() {
 	return ! empty( $GLOBALS['__dbru_is_admin'] );
@@ -181,6 +221,10 @@ class DBRU_Test_Admin_Bar { // phpcs:ignore Generic.Files.OneObjectStructurePerF
 	public $removed = array();
 	public function remove_node( $id ) {
 		$this->removed[] = $id;
+	}
+	public $added = array();
+	public function add_node( $args ) {
+		$this->added[] = $args;
 	}
 }
 
@@ -220,7 +264,7 @@ function esc_html( $t ) {
 function esc_attr( $t ) {
 	return htmlspecialchars( (string) $t, ENT_QUOTES, 'UTF-8' );
 }
-function esc_url_raw( $u ) {
+function esc_url_raw( $u, $protocols = null ) {
 	$u = trim( (string) $u );
 	// Come WordPress: protocolli ammessi http/https/mailto, ancore e percorsi relativi.
 	if ( '' === $u || preg_match( '#^[a-z][a-z0-9+.\-]*:#i', $u ) && ! preg_match( '#^(https?|mailto):#i', $u ) ) {
@@ -230,6 +274,49 @@ function esc_url_raw( $u ) {
 }
 function esc_url( $u ) {
 	return htmlspecialchars( esc_url_raw( $u ), ENT_QUOTES, 'UTF-8' );
+}
+function esc_textarea( $t ) {
+	return htmlspecialchars( (string) $t, ENT_QUOTES, 'UTF-8' );
+}
+function sanitize_key( $key ) {
+	return is_scalar( $key ) ? preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $key ) ) : '';
+}
+function sanitize_html_class( $class ) {
+	return preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $class );
+}
+function wp_strip_all_tags( $str ) {
+	return trim( strip_tags( preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', (string) $str ) ) );
+}
+function sanitize_text_field( $str ) {
+	if ( ! is_scalar( $str ) ) {
+		return '';
+	}
+	return trim( preg_replace( '/[\r\n\t ]+/', ' ', wp_strip_all_tags( (string) $str ) ) );
+}
+function wp_kses_post( $html ) {
+	// Stub: toglie script/style/iframe e gli attributi on* e javascript:.
+	$html = preg_replace( '@<(script|style|iframe)[^>]*?>.*?</\\1>@si', '', (string) $html );
+	$html = preg_replace( '/\son\w+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $html );
+	return preg_replace( '/javascript:/i', '', $html );
+}
+function wpautop( $text ) {
+	return '' === trim( $text ) ? '' : '<p>' . $text . '</p>';
+}
+function wp_unslash( $value ) {
+	return is_array( $value ) ? array_map( 'wp_unslash', $value ) : ( is_string( $value ) ? stripslashes( $value ) : $value );
+}
+function add_query_arg( array $args, $url ) {
+	return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . http_build_query( $args );
+}
+function selected( $a, $b ) {
+	if ( (string) $a === (string) $b ) {
+		echo ' selected="selected"';
+	}
+}
+function checked( $checked ) {
+	if ( $checked ) {
+		echo ' checked="checked"';
+	}
 }
 function wp_json_encode( $data, $options = 0 ) {
 	return json_encode( $data, $options );
@@ -261,6 +348,11 @@ function dbru_test_reset() {
 	$GLOBALS['__dbru_calls']    = array();
 	$GLOBALS['__dbru_user']     = null;
 	$GLOBALS['__dbru_is_admin'] = false;
+	$GLOBALS['__dbru_options']  = array();
+	$GLOBALS['menu']            = array();
+	$_GET                       = array();
+	$_POST                      = array();
+	$_REQUEST                   = array();
 	$GLOBALS['__dbru_roles']    = array(
 		'administrator' => array(
 			'name'         => 'Amministratore',
@@ -329,6 +421,17 @@ function dbru_test_login( $user ) {
 }
 
 /**
+ * Salva direttamente le impostazioni per ruolo, come da pannello.
+ *
+ * @param array $roles slug => impostazioni grezze.
+ */
+function dbru_test_store_roles( array $roles ) {
+	foreach ( $roles as $slug => $raw ) {
+		db_role_ux_save_role_settings( $slug, $raw );
+	}
+}
+
+/**
  * Sovrascrive la configurazione tramite il filtro pubblico, come farebbe un
  * mu-plugin.
  *
@@ -344,7 +447,7 @@ function dbru_test_config( array $overrides ) {
 }
 
 // Carica i sorgenti sotto test (non il file principale: istanzia l'updater).
-foreach ( array( 'config', 'cleanup', 'login-redirect', 'launchpad', 'admin' ) as $dbru_file ) {
+foreach ( array( 'settings', 'config', 'cleanup', 'login-redirect', 'launchpad', 'role-dashboard', 'admin' ) as $dbru_file ) {
 	require_once DB_ROLE_UX_TEST_ROOT . '/inc/' . $dbru_file . '.php';
 }
 $GLOBALS['__dbru_plugin_filters'] = $GLOBALS['__dbru_filters'];

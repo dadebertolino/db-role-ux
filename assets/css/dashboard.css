@@ -1,0 +1,59 @@
+/**
+ * DB Role UX — widget aggiunti in bacheca per ruolo.
+ */
+
+.db-role-ux-links {
+	margin: 0;
+}
+.db-role-ux-links li {
+	margin: 0 0 8px;
+}
+.db-role-ux-links a {
+	font-size: 14px;
+}
+
+.db-role-ux-text > :first-child {
+	margin-top: 0;
+}
+
+.db-role-ux-cards__label {
+	margin: 12px 0 8px;
+	font-size: 14px;
+}
+.db-role-ux-cards__label:first-child {
+	margin-top: 0;
+}
+.db-role-ux-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 8px;
+	margin: 0;
+}
+.db-role-ux-cards li {
+	margin: 0;
+}
+.db-role-ux-card {
+	display: block;
+	height: 100%;
+	box-sizing: border-box;
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #fff;
+	text-decoration: none;
+}
+.db-role-ux-card:hover,
+.db-role-ux-card:focus {
+	border-color: #2271b1;
+}
+.db-role-ux-card__title {
+	display: block;
+	font-weight: 600;
+	color: #135e96;
+}
+.db-role-ux-card__desc {
+	display: block;
+	margin-top: 2px;
+	color: #50575e;
+	font-size: 12px;
+}

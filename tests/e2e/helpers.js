@@ -27,6 +27,19 @@ const ADMIN_PAGE = '/wp-admin/tools.php?page=db-role-ux';
 const AREA_RISERVATA = '/area-riservata/';
 
 /**
+ * Azzera la bacheca per ruolo (impostazioni e widget rilevati) via endpoint
+ * REST della fixture.
+ *
+ * @param {import('@playwright/test').APIRequestContext} request
+ */
+async function resetRoleDashboard( request ) {
+	const res = await request.post( '/?rest_route=/dbru-e2e/v1/reset' );
+	if ( ! res.ok() ) {
+		throw new Error( `Reset E2E fallito (HTTP ${ res.status() }): ${ await res.text() }` );
+	}
+}
+
+/**
  * Login dal form di WordPress; attende di lasciare wp-login.php.
  *
  * @param {import('@playwright/test').Page} page
@@ -48,4 +61,5 @@ module.exports = {
 	ADMIN_PAGE,
 	AREA_RISERVATA,
 	login,
+	resetRoleDashboard,
 };
