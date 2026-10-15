@@ -6,7 +6,7 @@ Nato per il sito dell'**IIS Cigna-Baruffi-Garelli** di Mondovì, come prima fase
 
 - **Autore:** Davide Bertolino — [davidebertolino.it](https://www.davidebertolino.it)
 - **Licenza:** GPL v2 o successiva
-- **Requisiti:** WordPress 5.8+, PHP 7.4+
+- **Requisiti:** WordPress 6.0+, PHP 7.4+
 - **Niente registrazioni, niente nag, niente trucchi.** Nessun dato salvato nel database.
 
 ## Principio fail-safe
@@ -47,6 +47,17 @@ Le card del launchpad si modificano con il filtro `db_launchpad_cards`.
 
 Filtri disponibili: `db_role_ux_config`, `db_launchpad_cards`.
 
+## Pagina di riepilogo
+
+In *Strumenti → DB Role UX* (solo per chi ha `manage_options`) c'è il riepilogo della policy attiva, già passata dal filtro `db_role_ux_config`:
+
+- quali ruoli hanno il backend semplificato e quanti utenti hanno;
+- quali widget, voci della admin bar e voci di menu vengono nascosti;
+- se il redirect post-login è acceso e verso dove;
+- i gruppi di card dell'Area riservata e quali ruoli li vedono.
+
+La pagina è in sola lettura e non salva nulla.
+
 ## Installazione
 
 1. Carica lo ZIP da *Plugin → Aggiungi nuovo → Carica plugin* e attivalo.
@@ -59,15 +70,29 @@ Gli aggiornamenti arrivano automaticamente dalle release GitHub di `dadebertolin
 ```
 db-role-ux/
 ├── db-role-ux.php        bootstrap, costanti, updater
+├── assets/css/
+│   ├── db-admin-ui.css   design system condiviso dei plugin DB
+│   └── admin.css         pagina di riepilogo
 └── inc/
     ├── config.php        configurazione e selezione utenti
     ├── cleanup.php       bacheca, admin bar, menu, rifiniture
     ├── login-redirect.php
     ├── launchpad.php     shortcode [db_area_riservata]
+    ├── admin.php         pagina Strumenti → DB Role UX
     └── class-updater.php aggiornamenti da GitHub
 ```
 
+## Sviluppo
+
+Test unit, integration ed E2E (wp-env + Playwright) girano su GitHub Actions a ogni push e PR, più una run notturna su WordPress in sviluppo. Comandi e struttura in [TESTING.md](TESTING.md). I file di sviluppo (`tests/`, `bin/`, configurazioni) sono esclusi dallo ZIP della release.
+
 ## Changelog
+
+### 1.2.0
+- Pagina di riepilogo in *Strumenti → DB Role UX*, in sola lettura, con il design system condiviso (`db-admin-ui.css`): anteprima per ruolo, cosa viene nascosto, redirect post-login, gruppi dell'Area riservata. Link *Riepilogo* nella lista dei plugin.
+- Selezione degli utenti in un'unica policy (`db_role_ux_policy_matches()`), valutata sia sugli utenti sia sui ruoli.
+- Requisito minimo portato a WordPress 6.0 (prima 5.8): è la versione più vecchia provata in CI.
+- Test unit, integration ed E2E con accessibilità (axe-core), PHPCS (WPCS) e CI su GitHub Actions; release automatica dello ZIP sul tag.
 
 ### 1.1.0
 - Trasformato in plugin standard con cartella dedicata, installabile da ZIP.

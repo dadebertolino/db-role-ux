@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="DB Role UX">
+	<description>WordPress Coding Standards (Extra) per DB Role UX: sicurezza ed escaping bloccanti.</description>
+
+	<file>.</file>
+	<exclude-pattern>*/.git/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<!-- Test e fixture: non fanno parte del pacchetto distribuito. -->
+	<exclude-pattern>*/tests/*</exclude-pattern>
+
+	<arg value="sp"/>
+	<arg name="extensions" value="php"/>
+	<arg name="parallel" value="4"/>
+
+	<!-- Gli error bloccano la CI; i warning informano soltanto. -->
+	<config name="ignore_warnings_on_exit" value="1"/>
+
+	<config name="minimum_wp_version" value="6.0"/>
+
+	<rule ref="WordPress-Extra">
+		<!-- I docblock di file e funzione non sono richiesti: il codice è commentato per blocchi. -->
+		<exclude name="Squiz.Commenting"/>
+		<exclude name="Generic.Commenting"/>
+		<!-- Plugin mono-lingua (italiano): le stringhe non passano da gettext. -->
+		<exclude name="WordPress.WP.I18n"/>
+		<!-- File naming WP (class-*.php) già rispettato per le classi. -->
+		<exclude name="WordPress.Files.FileName"/>
+		<!-- Sniff deprecato in PHPCS 3.13, rimosso in 4.0. -->
+		<exclude name="Generic.Functions.CallTimePassByReference"/>
+	</rule>
+
+	<!-- Prefissi globali: funzioni db_role_ux_* e db_launchpad_* (API pubblica storica). -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="db_role_ux"/>
+				<element value="DB_ROLE_UX"/>
+				<element value="db_launchpad"/>
+				<element value="DB_GitHub_Updater"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Sicurezza: sempre bloccante. -->
+	<rule ref="WordPress.Security.EscapeOutput"/>
+	<rule ref="WordPress.Security.NonceVerification"/>
+	<rule ref="WordPress.Security.ValidatedSanitizedInput"/>
+</ruleset>

@@ -1,0 +1,89 @@
+name: Nightly
+
+# Controllo notturno contro ciò che cambia senza un nostro commit:
+#   - WordPress in sviluppo (trunk) → avvisa prima che una nuova versione
+#     cambi bacheca, admin bar, capability o login;
+#   - matrice PHP × WordPress negli E2E (la CI di ogni PR esegue
+#     .wp-env.json e WordPress 6.0); PHP 7.4 resta coperto dagli unit test a
+#     ogni push: l'immagine wp-env per 7.4 non si costruisce più;
+#   - Playwright e wp-env alle versioni del lockfile.
+#
+# Un fallimento arriva via email a chi ha modificato per ultimo questo file
+# (notifiche standard di GitHub Actions per i workflow pianificati).
+# NB: GitHub sospende i workflow pianificati dopo 60 giorni senza attività
+# nel repository.
+
+on:
+  schedule:
+    - cron: '27 4 * * *'   # 04:27 UTC, sfasato rispetto alle nightly degli altri plugin DB
+  workflow_dispatch:
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+jobs:
+
+  e2e:
+    name: E2E
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: wp-trunk-php-8.3
+            core: WordPress/WordPress#master
+            php: '8.3'
+          - label: wp-latest-php-8.3
+            core: https://wordpress.org/latest.zip
+            php: '8.3'
+          - label: wp-latest-php-8.4
+            core: https://wordpress.org/latest.zip
+            php: '8.4'
+          - label: wp-6.0-php-8.1
+            core: WordPress/WordPress#6.0
+            php: '8.1'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      core: ${{ matrix.core }}
+      php: ${{ matrix.php }}
+      label: ${{ matrix.label }}
+
+  integration-trunk:
+    name: Integration (WordPress trunk, PHP 8.4)
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          extensions: mysqli
+          coverage: none
+
+      - name: Install Composer (dev)
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Installa WordPress test suite (trunk)
+        run: |
+          sudo apt-get update && sudo apt-get install -y subversion
+          bash bin/install-wp-tests.sh wordpress_test root root 127.0.0.1 trunk
+
+      - name: PHPUnit (integration)
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
+        run: vendor/bin/phpunit -c phpunit-integration.xml.dist --colors=always

@@ -1,3 +1,16 @@
-.DS_Store
-node_modules/
+/vendor/
+/node_modules/
+composer.lock
 *.zip
+.phpcs.cache
+.phpunit.result.cache
+/playwright-report/
+/test-results/
+.wp-env-*
+.DS_Store
+
+# Sessioni salvate dagli E2E
+tests/e2e/.auth/
+
+# Impostazioni locali dell'editor
+.vscode/

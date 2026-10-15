@@ -3,8 +3,8 @@
  * Plugin Name:       DB Role UX
  * Plugin URI:        https://www.davidebertolino.it/progetti/
  * Description:       Esperienza backend semplificata per gli utenti non-amministratori: pulizia della bacheca, della admin bar e del menu laterale, più il launchpad "Area riservata" per ruolo. Guidato da configurazione, fail-safe verso l'amministratore.
- * Version:           1.1.0
- * Requires at least: 5.8
+ * Version:           1.2.0
+ * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Davide Bertolino
  * Author URI:        https://www.davidebertolino.it
@@ -49,7 +49,7 @@ if ( function_exists( 'db_role_ux_config' ) ) {
 	return;
 }
 
-define( 'DB_ROLE_UX_VERSION', '1.1.0' );
+define( 'DB_ROLE_UX_VERSION', '1.2.0' );
 define( 'DB_ROLE_UX_FILE', __FILE__ );
 define( 'DB_ROLE_UX_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -65,6 +65,10 @@ require_once DB_ROLE_UX_DIR . 'inc/config.php';
 require_once DB_ROLE_UX_DIR . 'inc/cleanup.php';
 require_once DB_ROLE_UX_DIR . 'inc/login-redirect.php';
 require_once DB_ROLE_UX_DIR . 'inc/launchpad.php';
+
+if ( is_admin() ) {
+	require_once DB_ROLE_UX_DIR . 'inc/admin.php';
+}
 
 // Shared components — GitHub auto-updater.
 // Istanziato SENZA condizione is_admin(): gli aggiornamenti automatici girano anche via WP-Cron.
