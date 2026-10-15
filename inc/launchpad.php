@@ -43,7 +43,7 @@ function db_launchpad_cards() {
 	$groups = array(
 
 		// Card per i DOCENTI (chi ha db_area_docenti).
-		'db_area_docenti' => array(
+		'db_area_docenti'    => array(
 			'label' => 'Area Docenti',
 			'cards' => array(
 				array(
@@ -74,7 +74,7 @@ function db_launchpad_cards() {
 		),
 
 		// Card per gli ALUNNI (chi ha db_area_alunni).
-		'db_area_alunni' => array(
+		'db_area_alunni'     => array(
 			'label' => 'Area Alunni',
 			'cards' => array(
 				array(
@@ -138,8 +138,8 @@ function db_launchpad_render( $atts = array() ) {
 		);
 	}
 
-	$user  = wp_get_current_user();
-	$name  = $user->display_name ? $user->display_name : $user->user_login;
+	$user   = wp_get_current_user();
+	$name   = $user->display_name ? $user->display_name : $user->user_login;
 	$groups = db_launchpad_cards();
 
 	ob_start();
@@ -172,7 +172,8 @@ function db_launchpad_render( $atts = array() ) {
 				<h2 class="h4 mb-3"><?php echo esc_html( $group['label'] ); ?></h2>
 
 				<div class="row">
-					<?php foreach ( $cards as $card ) :
+					<?php
+					foreach ( $cards as $card ) :
 						$title = isset( $card['title'] ) ? $card['title'] : '';
 						$desc  = isset( $card['desc'] ) ? $card['desc'] : '';
 						$url   = isset( $card['url'] ) ? $card['url'] : '#';

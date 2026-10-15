@@ -29,9 +29,9 @@ function db_role_ux_config() {
 		 *
 		 * Scelta attuale: 'non_admin' (tutti i non-amministratori).
 		 */
-		'target_mode'       => 'non_admin',
-		'target_roles'      => array( 'subscriber' ), // usato solo se target_mode = 'roles'
-		'target_capability' => 'db_backend_clean',    // usato solo se target_mode = 'capability'
+		'target_mode'        => 'non_admin',
+		'target_roles'       => array( 'subscriber' ), // usato solo se target_mode = 'roles'
+		'target_capability'  => 'db_backend_clean',    // usato solo se target_mode = 'capability'
 
 		/*
 		 * WIDGET DELLA BACHECA da rimuovere.
@@ -45,7 +45,7 @@ function db_role_ux_config() {
 		 * il doppione. Se in futuro la gestione circolari rientrasse in
 		 * WordPress, commentare le righe 0/1/2 per ripristinarle.
 		 */
-		'dashboard_widgets' => array(
+		'dashboard_widgets'  => array(
 			array( '0', 'normal' ), // Circolari non firmate
 			array( '1', 'normal' ), // Notifiche nuove circolari da leggere/firmare
 			array( '2', 'normal' ), // Circolari firmate
@@ -63,7 +63,7 @@ function db_role_ux_config() {
 		 * NODI DELLA ADMIN BAR da rimuovere (ID reali dalla ricognizione).
 		 * Rimuovere un nodo genitore elimina anche i figli.
 		 */
-		'adminbar_nodes'    => array(
+		'adminbar_nodes'     => array(
 			'wp-logo',          // logo WP + tutto il sottomenu (About, Partecipa, .org, docs...)
 			'updates',          // "44 aggiornamenti disponibili"
 			'comments',         // commenti in moderazione
@@ -81,14 +81,14 @@ function db_role_ux_config() {
 		 * Esempi: 'edit.php' (Articoli), 'edit-comments.php' (Commenti),
 		 * 'tools.php' (Strumenti).
 		 */
-		'admin_menu_pages'  => array(),
+		'admin_menu_pages'   => array(),
 
 		/*
 		 * REDIRECT POST-LOGIN.
 		 * enabled=false → in Fase 1 NON reindirizziamo (decisione rimandata).
 		 * Quando lo accendi: 'url' assoluto o relativo alla home.
 		 */
-		'login_redirect'    => array(
+		'login_redirect'     => array(
 			'enabled' => false,
 			'url'     => home_url( '/' ),
 		),
@@ -97,7 +97,7 @@ function db_role_ux_config() {
 		 * DEBUG: se true, logga in error_log cosa viene rimosso e per quale utente.
 		 * Da tenere false in produzione.
 		 */
-		'debug'             => false,
+		'debug'              => false,
 	);
 
 	/*
@@ -109,23 +109,20 @@ function db_role_ux_config() {
 
 /**
  * =====================================================================
- *  DECISIONE: un utente è soggetto alla pulizia?
- *  Un solo punto di verità, usato sia per l'utente corrente sia per
- *  l'utente passato da login_redirect. FAIL-SAFE: gli admin sono
- *  sempre esclusi.
+ *  DECISIONE: chi è soggetto alla pulizia?
+ *  Un solo punto di verità, usato per l'utente corrente, per l'utente
+ *  passato da login_redirect e per l'anteprima per ruolo della pagina
+ *  di riepilogo. FAIL-SAFE: chi ha manage_options è sempre escluso.
  * =====================================================================
  *
- * @param WP_User $user Utente da valutare.
+ * @param callable $has_cap Riceve una capability, restituisce bool.
+ * @param string[] $roles   Ruoli del soggetto valutato.
  * @return bool
  */
-function db_role_ux_user_matches( $user ) {
-
-	if ( ! ( $user instanceof WP_User ) || ! $user->exists() ) {
-		return false;
-	}
+function db_role_ux_policy_matches( $has_cap, array $roles ) {
 
 	// Regola d'oro, non negoziabile: l'amministratore vede sempre tutto.
-	if ( user_can( $user, 'manage_options' ) ) {
+	if ( call_user_func( $has_cap, 'manage_options' ) ) {
 		return false;
 	}
 
@@ -136,17 +133,54 @@ function db_role_ux_user_matches( $user ) {
 
 		case 'capability':
 			$cap = isset( $config['target_capability'] ) ? $config['target_capability'] : '';
-			return $cap ? user_can( $user, $cap ) : false;
+			return $cap ? (bool) call_user_func( $has_cap, $cap ) : false;
 
 		case 'roles':
-			$roles = isset( $config['target_roles'] ) ? (array) $config['target_roles'] : array();
-			return (bool) array_intersect( $roles, (array) $user->roles );
+			$target = isset( $config['target_roles'] ) ? (array) $config['target_roles'] : array();
+			return (bool) array_intersect( $target, $roles );
 
 		case 'non_admin':
 		default:
-			// Chiunque sia loggato e non sia admin (già escluso sopra).
+			// Chiunque non sia admin (già escluso sopra).
 			return true;
 	}
+}
+
+/**
+ * Un utente è soggetto alla pulizia?
+ *
+ * @param WP_User $user Utente da valutare.
+ * @return bool
+ */
+function db_role_ux_user_matches( $user ) {
+
+	if ( ! ( $user instanceof WP_User ) || ! $user->exists() ) {
+		return false;
+	}
+
+	return db_role_ux_policy_matches(
+		function ( $cap ) use ( $user ) {
+			return user_can( $user, $cap );
+		},
+		(array) $user->roles
+	);
+}
+
+/**
+ * Un ruolo è soggetto alla pulizia? Valuta le sole capability del ruolo:
+ * un utente con capability aggiunte a mano può fare eccezione.
+ *
+ * @param string $role_slug Slug del ruolo.
+ * @return bool
+ */
+function db_role_ux_role_matches( $role_slug ) {
+
+	$role = get_role( $role_slug );
+	if ( ! $role ) {
+		return false;
+	}
+
+	return db_role_ux_policy_matches( array( $role, 'has_cap' ), array( $role_slug ) );
 }
 
 /**

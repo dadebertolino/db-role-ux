@@ -1,0 +1,57 @@
+/**
+ * DB Role UX — pagina di riepilogo (Strumenti → DB Role UX).
+ * Si appoggia al design system db-admin-ui.css (variabili --db-*).
+ */
+
+.db-role-ux-wrap {
+	max-width: 1100px;
+}
+
+.db-role-ux-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	margin: 0 0 16px;
+}
+.db-role-ux-stats .db-ui-stat {
+	margin: 0;
+}
+
+.db-role-ux-wrap .db-ui-card-body > p:first-child {
+	margin-top: 0;
+}
+
+.db-role-ux-columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 16px 24px;
+}
+.db-role-ux-columns h3 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: var(--db-text);
+}
+.db-role-ux-columns ul {
+	margin: 0;
+	padding-left: 18px;
+	list-style: disc;
+}
+.db-role-ux-columns li {
+	margin: 0 0 4px;
+}
+
+.db-role-ux-none,
+.db-role-ux-note {
+	color: var(--db-text-muted);
+}
+.db-role-ux-note {
+	margin: 12px 0 0;
+	font-size: 12px;
+}
+
+@media screen and (max-width: 782px) {
+	.db-role-ux-wrap .db-ui-table {
+		display: block;
+		overflow-x: auto;
+	}
+}
