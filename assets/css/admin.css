@@ -127,3 +127,38 @@
 	flex-wrap: wrap;
 	gap: 8px;
 }
+
+/* Fascia di benvenuto: anteprima e campi */
+.db-role-ux-preview {
+	margin: 0 0 16px;
+}
+.db-role-ux-preview .db-role-ux-banner {
+	margin: 4px 0 0;
+}
+.db-role-ux-radio {
+	display: inline-block;
+	margin: 0 16px 6px 0;
+	font-weight: 400;
+}
+.db-role-ux-editor .db-role-ux-banner-logo .db-role-ux-radio {
+	display: inline-block;
+	font-weight: 400;
+}
+.db-role-ux-media {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin: 8px 0 0;
+}
+.db-role-ux-editor .db-role-ux-media label {
+	display: inline;
+	margin: 0;
+}
+.db-role-ux-media-thumb img {
+	display: block;
+	max-height: 48px;
+	width: auto;
+	border: 1px solid var(--db-border);
+	border-radius: var(--db-radius-sm);
+}

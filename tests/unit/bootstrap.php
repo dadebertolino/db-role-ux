@@ -189,6 +189,9 @@ function add_management_page( $page_title, $menu_title, $capability, $slug, $cb 
 function wp_enqueue_style( $handle, $src = '', $deps = array(), $ver = false ) {
 	$GLOBALS['__dbru_calls']['wp_enqueue_style'][ $handle ] = array( $src, $deps, $ver );
 }
+function wp_enqueue_media() {
+	$GLOBALS['__dbru_calls']['wp_enqueue_media'] = true;
+}
 function wp_enqueue_script( $handle, $src = '', $deps = array(), $ver = false, $in_footer = false ) {
 	$GLOBALS['__dbru_calls']['wp_enqueue_script'][ $handle ] = array( $src, $deps, $ver );
 }
@@ -235,6 +238,37 @@ class DBRU_Test_Screen { // phpcs:ignore Generic.Files.OneObjectStructurePerFile
 	}
 }
 
+/* --- Schermata, tema, media ------------------------------------------------- */
+
+function get_current_screen() {
+	return isset( $GLOBALS['__dbru_screen'] ) ? (object) array( 'id' => $GLOBALS['__dbru_screen'] ) : null;
+}
+function get_bloginfo( $show = 'name' ) {
+	return 'IIS Cigna & Baruffi';
+}
+function get_theme_mod( $name, $default = false ) {
+	return isset( $GLOBALS['__dbru_theme_mods'][ $name ] ) ? $GLOBALS['__dbru_theme_mods'][ $name ] : $default;
+}
+function get_post_meta( $id, $key = '', $single = false ) {
+	return isset( $GLOBALS['__dbru_attachments'][ $id ]['alt'] ) ? $GLOBALS['__dbru_attachments'][ $id ]['alt'] : '';
+}
+/**
+ * Stub: un'immagine esiste se registrata in $GLOBALS['__dbru_attachments'].
+ */
+function wp_get_attachment_image( $id, $size = 'thumbnail', $icon = false, $attr = '' ) {
+	if ( ! isset( $GLOBALS['__dbru_attachments'][ $id ] ) ) {
+		return '';
+	}
+	$attr = array_merge( array( 'src' => $GLOBALS['__dbru_attachments'][ $id ]['src'] ), (array) $attr );
+	$html = '<img';
+	foreach ( $attr as $name => $value ) {
+		if ( false !== $value ) {
+			$html .= ' ' . $name . '="' . esc_attr( $value ) . '"';
+		}
+	}
+	return $html . '>';
+}
+
 /* --- URL, plugin, escape ---------------------------------------------------- */
 
 function home_url( $path = '' ) {
@@ -274,6 +308,12 @@ function esc_url_raw( $u, $protocols = null ) {
 }
 function esc_url( $u ) {
 	return htmlspecialchars( esc_url_raw( $u ), ENT_QUOTES, 'UTF-8' );
+}
+function absint( $n ) {
+	return abs( (int) $n );
+}
+function sanitize_hex_color( $color ) {
+	return preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', (string) $color ) ? $color : null;
 }
 function esc_textarea( $t ) {
 	return htmlspecialchars( (string) $t, ENT_QUOTES, 'UTF-8' );
@@ -350,6 +390,9 @@ function dbru_test_reset() {
 	$GLOBALS['__dbru_is_admin'] = false;
 	$GLOBALS['__dbru_options']  = array();
 	$GLOBALS['menu']            = array();
+	$GLOBALS['__dbru_screen']      = null;
+	$GLOBALS['__dbru_theme_mods']  = array();
+	$GLOBALS['__dbru_attachments'] = array();
 	$_GET                       = array();
 	$_POST                      = array();
 	$_REQUEST                   = array();

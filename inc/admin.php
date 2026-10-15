@@ -38,7 +38,11 @@ function db_role_ux_admin_assets( $hook ) {
 	$url = plugin_dir_url( DB_ROLE_UX_FILE ) . 'assets/css/';
 	wp_enqueue_style( 'db-admin-ui', $url . 'db-admin-ui.css', array(), '1.0.0' );
 	wp_enqueue_style( 'db-role-ux-admin', $url . 'admin.css', array( 'db-admin-ui' ), DB_ROLE_UX_VERSION );
-	wp_enqueue_script( 'db-role-ux-admin', plugin_dir_url( DB_ROLE_UX_FILE ) . 'assets/js/admin.js', array(), DB_ROLE_UX_VERSION, true );
+	// Anteprima della fascia di benvenuto con gli stessi stili della bacheca.
+	wp_enqueue_style( 'db-role-ux-dashboard', $url . 'dashboard.css', array(), DB_ROLE_UX_VERSION );
+	wp_enqueue_style( 'wp-color-picker' );
+	wp_enqueue_media();
+	wp_enqueue_script( 'db-role-ux-admin', plugin_dir_url( DB_ROLE_UX_FILE ) . 'assets/js/admin.js', array( 'jquery', 'wp-color-picker' ), DB_ROLE_UX_VERSION, true );
 }
 
 add_filter( 'plugin_action_links_' . plugin_basename( DB_ROLE_UX_FILE ), 'db_role_ux_action_links' );
@@ -389,6 +393,9 @@ function db_role_ux_describe_role_settings( $settings ) {
 			$parts[] = $n . ' ' . ( 1 === $n ? $labels[0] : $labels[1] );
 		}
 	}
+	if ( ! empty( $settings['banner'] ) ) {
+		$parts[] = 'fascia di benvenuto';
+	}
 	return empty( $parts ) ? 'Personalizza' : implode( ', ', $parts );
 }
 
@@ -452,6 +459,8 @@ function db_role_ux_render_role_editor() {
 		<input type="hidden" name="action" value="db_role_ux_save_role">
 		<input type="hidden" name="role" value="<?php echo esc_attr( $current ); ?>">
 		<?php wp_nonce_field( 'db_role_ux_save_role_' . $current ); ?>
+
+		<?php db_role_ux_render_banner_fields( $settings['banner'], $name ); ?>
 
 		<div class="db-ui-card">
 			<div class="db-ui-card-header"><h2>Widget da nascondere — <?php echo esc_html( $name ); ?></h2></div>
@@ -518,6 +527,86 @@ function db_role_ux_render_role_editor() {
 			<button type="submit" class="button" name="do" value="reset">Azzera le impostazioni del ruolo</button>
 		</p>
 	</form>
+	<?php
+}
+
+/**
+ * Campi della fascia di benvenuto, con anteprima di quella salvata.
+ *
+ * @param array  $banner    Fascia salvata (array vuoto = nessuna).
+ * @param string $role_name Nome leggibile del ruolo.
+ */
+function db_role_ux_render_banner_fields( array $banner, $role_name ) {
+	$enabled = ! empty( $banner );
+	$banner  = array_merge(
+		array(
+			'logo'    => 'site',
+			'logo_id' => 0,
+			'title'   => '',
+			'text'    => '',
+			'color'   => '',
+		),
+		$banner
+	);
+	$preview = $enabled ? db_role_ux_render_banner(
+		$banner,
+		array(
+			'{nome}'  => 'Nome Cognome',
+			'{ruolo}' => $role_name,
+			'{sito}'  => get_bloginfo( 'name' ),
+		)
+	) : '';
+	$thumb   = $banner['logo_id'] ? wp_get_attachment_image( $banner['logo_id'], 'thumbnail', false, array( 'alt' => '' ) ) : '';
+	?>
+	<div class="db-ui-card">
+		<div class="db-ui-card-header"><h2>Fascia di benvenuto — <?php echo esc_html( $role_name ); ?></h2></div>
+		<div class="db-ui-card-body">
+			<p>
+				<input type="checkbox" name="banner[enabled]" id="db-role-ux-banner-enabled" value="1"<?php checked( $enabled ); ?>>
+				<label for="db-role-ux-banner-enabled">Mostra una fascia di benvenuto in cima alla bacheca di questo ruolo</label>
+			</p>
+
+			<?php if ( $preview ) : ?>
+				<div class="db-role-ux-preview">
+					<p class="db-role-ux-note">Anteprima, con un nome di esempio:</p>
+					<?php echo $preview; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escape in db_role_ux_render_banner(). ?>
+				</div>
+			<?php endif; ?>
+
+			<fieldset class="db-ui-field db-role-ux-banner-logo">
+				<legend>Logo</legend>
+				<?php foreach ( DB_ROLE_UX_BANNER_LOGOS as $value => $label ) : ?>
+					<label class="db-role-ux-radio">
+						<input type="radio" name="banner[logo]" value="<?php echo esc_attr( $value ); ?>"<?php checked( $value, $banner['logo'] ); ?>>
+						<?php echo esc_html( $label ); ?>
+					</label>
+				<?php endforeach; ?>
+				<?php if ( ! get_theme_mod( 'custom_logo' ) ) : ?>
+					<span class="db-ui-field-help">Il sito non ha un logo (Aspetto → Personalizza → Identità del sito): con <em>Logo del sito</em> la fascia resta senza immagine.</span>
+				<?php endif; ?>
+				<p class="db-role-ux-media">
+					<label for="db-role-ux-banner-logo-id">ID dell'immagine</label>
+					<input type="number" min="0" step="1" class="small-text" name="banner[logo_id]" id="db-role-ux-banner-logo-id" value="<?php echo esc_attr( $banner['logo_id'] ? $banner['logo_id'] : '' ); ?>">
+					<button type="button" class="button db-role-ux-media-pick" hidden>Scegli dalla Libreria media</button>
+					<span class="db-role-ux-media-thumb"><?php echo $thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup di wp_get_attachment_image(). ?></span>
+				</p>
+			</fieldset>
+
+			<p class="db-ui-field">
+				<label for="db-role-ux-banner-title">Titolo</label>
+				<input type="text" class="large-text" name="banner[title]" id="db-role-ux-banner-title" value="<?php echo esc_attr( $banner['title'] ); ?>" aria-describedby="db-role-ux-banner-help">
+			</p>
+			<p class="db-ui-field">
+				<label for="db-role-ux-banner-text">Testo (HTML di base ammesso)</label>
+				<textarea name="banner[text]" id="db-role-ux-banner-text" rows="3" class="large-text" aria-describedby="db-role-ux-banner-help"><?php echo esc_textarea( $banner['text'] ); ?></textarea>
+				<span class="db-ui-field-help" id="db-role-ux-banner-help">Segnaposto: <code>{nome}</code> (nome dell'utente), <code>{ruolo}</code> (i suoi ruoli), <code>{sito}</code> (nome del sito).</span>
+			</p>
+			<p class="db-ui-field">
+				<label for="db-role-ux-banner-color">Colore d'accento (barra laterale)</label>
+				<input type="text" class="db-role-ux-color" name="banner[color]" id="db-role-ux-banner-color" value="<?php echo esc_attr( $banner['color'] ); ?>" placeholder="#2271b1" pattern="#([0-9a-fA-F]{3}){1,2}">
+			</p>
+		</div>
+	</div>
 	<?php
 }
 
@@ -634,6 +723,7 @@ function db_role_ux_role_settings_from_post( array $post ) {
 		'widgets'        => $widgets,
 		'menu_links'     => db_role_ux_parse_links( isset( $post['menu_links'] ) ? $post['menu_links'] : '', true ),
 		'adminbar_links' => db_role_ux_parse_links( isset( $post['adminbar_links'] ) ? $post['adminbar_links'] : '' ),
+		'banner'         => isset( $post['banner'] ) ? $post['banner'] : array(),
 	);
 }
 

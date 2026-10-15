@@ -7,7 +7,9 @@
 #  - plugin attivo;
 #  - ruolo "docente" con la capability db_area_docenti (card Area Docenti);
 #  - utenti docente e sottoscrittore (password: password);
-#  - pagina "Area riservata" con lo shortcode [db_area_riservata].
+#  - pagina "Area riservata" con lo shortcode [db_area_riservata];
+#  - nome del sito fisso e logo di prova nella Libreria media, usato anche
+#    come logo del sito (fascia di benvenuto).
 #
 # Widget delle circolari, voci della admin bar del tema e redirect post-login
 # acceso arrivano dal mu-plugin tests/fixtures/db-role-ux-e2e-fixture.php.
@@ -46,5 +48,15 @@ if [ -z "$(run post list --post_type=page --name=area-riservata --field=ID --for
 	run post create --post_type=page --post_status=publish --post_title='Area riservata' \
 		--post_name=area-riservata --post_content='[db_area_riservata]'
 fi
+
+echo "→ Nome del sito e logo di prova"
+run option update blogname 'IIS Cigna-Baruffi-Garelli'
+LOGO_ID="$(run post list --post_type=attachment --name=logo-e2e --field=ID --format=ids 2>/dev/null | tr -d '[:space:]')"
+if [ -z "${LOGO_ID}" ]; then
+	# Percorso relativo alla root di WordPress nel container cli.
+	LOGO_ID="$(run media import wp-content/plugins/db-role-ux/tests/fixtures/logo-e2e.png \
+		--title=logo-e2e --alt='Logo E2E' --porcelain | tr -d '[:space:]')"
+fi
+run theme mod set custom_logo "${LOGO_ID}"
 
 echo "Setup E2E completato."

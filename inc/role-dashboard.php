@@ -180,7 +180,8 @@ function db_role_ux_render_widget_cards( array $group_keys ) {
 }
 
 /**
- * CSS dei widget aggiunti, solo in bacheca e solo se ce ne sono.
+ * CSS di widget aggiunti e fascia di benvenuto, solo in bacheca e solo se
+ * servono.
  */
 add_action( 'admin_enqueue_scripts', 'db_role_ux_dashboard_assets' );
 function db_role_ux_dashboard_assets( $hook ) {
@@ -188,10 +189,111 @@ function db_role_ux_dashboard_assets( $hook ) {
 		return;
 	}
 	$settings = db_role_ux_current_role_settings();
-	if ( empty( $settings['widgets'] ) ) {
+	if ( empty( $settings['widgets'] ) && empty( $settings['banner'] ) ) {
 		return;
 	}
 	wp_enqueue_style( 'db-role-ux-dashboard', plugin_dir_url( DB_ROLE_UX_FILE ) . 'assets/css/dashboard.css', array(), DB_ROLE_UX_VERSION );
+}
+
+/**
+ * =====================================================================
+ *  FASCIA DI BENVENUTO
+ *  In cima alla bacheca, sopra il titolo "Bacheca", a tutta larghezza.
+ *  Si aggancia ad admin_notices (stampato prima di .wrap) ma non usa la
+ *  classe .notice: WordPress non la sposta e non la rende chiudibile.
+ * =====================================================================
+ */
+add_action( 'admin_notices', 'db_role_ux_banner_notice' );
+function db_role_ux_banner_notice() {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+	if ( ! $screen || 'dashboard' !== $screen->id ) {
+		return;
+	}
+	$settings = db_role_ux_current_role_settings();
+	if ( empty( $settings['banner'] ) ) {
+		return;
+	}
+	echo db_role_ux_render_banner( $settings['banner'], db_role_ux_banner_placeholders( wp_get_current_user() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escape in db_role_ux_render_banner().
+}
+
+/**
+ * Valori dei segnaposto per un utente: {nome}, {ruolo}, {sito}.
+ *
+ * @param WP_User $user Utente.
+ * @return string[] Segnaposto => valore (non escapato).
+ */
+function db_role_ux_banner_placeholders( $user ) {
+	$names = array();
+	$roles = wp_roles()->roles;
+	foreach ( (array) $user->roles as $slug ) {
+		if ( isset( $roles[ $slug ]['name'] ) ) {
+			$names[] = translate_user_role( $roles[ $slug ]['name'] );
+		}
+	}
+
+	return array(
+		'{nome}'  => $user->display_name ? $user->display_name : $user->user_login,
+		'{ruolo}' => implode( ', ', $names ),
+		'{sito}'  => get_bloginfo( 'name' ),
+	);
+}
+
+/**
+ * Logo della fascia: immagine scelta, logo del sito o niente. Se l'immagine
+ * non ha un testo alternativo, si usa il nome del sito (è un logo, non una
+ * decorazione).
+ *
+ * @param array $banner Fascia sanitizzata.
+ * @return string
+ */
+function db_role_ux_banner_logo( array $banner ) {
+	$logo = isset( $banner['logo'] ) ? $banner['logo'] : 'site';
+	if ( 'none' === $logo ) {
+		return '';
+	}
+
+	$id = 'media' === $logo ? (int) $banner['logo_id'] : (int) get_theme_mod( 'custom_logo' );
+	if ( ! $id ) {
+		return '';
+	}
+
+	$alt = trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+	return (string) wp_get_attachment_image(
+		$id,
+		'medium',
+		false,
+		array(
+			'class'   => 'db-role-ux-banner__logo',
+			'alt'     => '' !== $alt ? $alt : get_bloginfo( 'name' ),
+			'loading' => false,
+		)
+	);
+}
+
+/**
+ * HTML della fascia. I valori dei segnaposto vengono escapati prima di
+ * entrare nel testo; il testo era già filtrato con wp_kses_post() al
+ * salvataggio e lo è di nuovo qui.
+ *
+ * @param array    $banner Fascia sanitizzata.
+ * @param string[] $values Valori dei segnaposto (non escapati).
+ * @return string
+ */
+function db_role_ux_render_banner( array $banner, array $values ) {
+	$escaped = array_map( 'esc_html', $values );
+	$title   = isset( $banner['title'] ) ? strtr( esc_html( $banner['title'] ), $escaped ) : '';
+	$text    = isset( $banner['text'] ) ? strtr( (string) $banner['text'], $escaped ) : '';
+	$logo    = db_role_ux_banner_logo( $banner );
+	$style   = ! empty( $banner['color'] ) ? ' style="--db-role-ux-accent:' . esc_attr( $banner['color'] ) . '"' : '';
+
+	$html  = '<section class="db-role-ux-banner' . ( $logo ? ' db-role-ux-banner--logo' : '' ) . '" aria-label="Benvenuto"' . $style . '>';
+	$html .= $logo ? '<div class="db-role-ux-banner__media">' . $logo . '</div>' : '';
+	$html .= '<div class="db-role-ux-banner__body">';
+	$html .= '' !== $title ? '<p class="db-role-ux-banner__title">' . $title . '</p>' : '';
+	$html .= '' !== trim( $text ) ? '<div class="db-role-ux-banner__text">' . wp_kses_post( wpautop( $text ) ) . '</div>' : '';
+	$html .= '</div></section>';
+
+	return $html;
 }
 
 /**
