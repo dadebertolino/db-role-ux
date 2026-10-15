@@ -24,9 +24,9 @@ async function addWidget( page, widget ) {
 	const form = page.locator( 'fieldset.db-role-ux-widget' ).last();
 	await expect( form.locator( 'legend' ).first() ).toHaveText( 'Nuovo widget' );
 	await form.getByLabel( /^Titolo/ ).fill( widget.title );
-	await form.getByLabel( 'Tipo' ).selectOption( widget.type );
+	await form.getByLabel( 'Tipo', { exact: true } ).selectOption( widget.type );
 	if ( widget.context ) {
-		await form.getByLabel( 'Colonna' ).selectOption( widget.context );
+		await form.getByLabel( 'Colonna', { exact: true } ).selectOption( widget.context );
 	}
 	if ( widget.links ) {
 		await form.getByLabel( /^Link \(tipo/ ).fill( widget.links );
@@ -67,7 +67,7 @@ test.describe( 'amministratore configura il docente', () => {
 		const form = page.locator( 'fieldset.db-role-ux-widget' ).last();
 		await expect( form.getByLabel( /^Link \(tipo/ ) ).toBeVisible();
 		await expect( form.getByLabel( /^Testo \(tipo/ ) ).toBeHidden();
-		await form.getByLabel( 'Tipo' ).selectOption( 'text' );
+		await form.getByLabel( 'Tipo', { exact: true } ).selectOption( 'text' );
 		await expect( form.getByLabel( /^Link \(tipo/ ) ).toBeHidden();
 		await expect( form.getByLabel( /^Testo \(tipo/ ) ).toBeVisible();
 	} );
