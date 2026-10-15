@@ -103,8 +103,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 6.0 = la test suite più vecchia compatibile con PHPUnit 9 (quella
-        # di 5.8 non lo è); il minimo dichiarato (5.8) è coperto dagli E2E.
+        # 6.0 = minimo dichiarato (Requires at least), latest = versione corrente.
         include:
           - wp: '6.0'
             php: '8.0'
@@ -164,9 +163,9 @@ jobs:
           - label: ci
             core: ''
             php: ''
-          # Requisito minimo dichiarato (Requires at least: 5.8).
-          - label: wp-5.8
-            core: 'WordPress/WordPress#5.8'
+          # Requisito minimo dichiarato (Requires at least: 6.0).
+          - label: wp-6.0
+            core: 'WordPress/WordPress#6.0'
             php: '8.1'
     uses: ./.github/workflows/e2e.yml
     with:

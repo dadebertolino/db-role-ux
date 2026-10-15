@@ -6,7 +6,7 @@ Nato per il sito dell'**IIS Cigna-Baruffi-Garelli** di Mondovì, come prima fase
 
 - **Autore:** Davide Bertolino — [davidebertolino.it](https://www.davidebertolino.it)
 - **Licenza:** GPL v2 o successiva
-- **Requisiti:** WordPress 5.8+, PHP 7.4+
+- **Requisiti:** WordPress 6.0+, PHP 7.4+
 - **Niente registrazioni, niente nag, niente trucchi.** Nessun dato salvato nel database.
 
 ## Principio fail-safe
@@ -91,6 +91,7 @@ Test unit, integration ed E2E (wp-env + Playwright) girano su GitHub Actions a o
 ### 1.2.0
 - Pagina di riepilogo in *Strumenti → DB Role UX*, in sola lettura, con il design system condiviso (`db-admin-ui.css`): anteprima per ruolo, cosa viene nascosto, redirect post-login, gruppi dell'Area riservata. Link *Riepilogo* nella lista dei plugin.
 - Selezione degli utenti in un'unica policy (`db_role_ux_policy_matches()`), valutata sia sugli utenti sia sui ruoli.
+- Requisito minimo portato a WordPress 6.0 (prima 5.8): è la versione più vecchia provata in CI.
 - Test unit, integration ed E2E con accessibilità (axe-core), PHPCS (WPCS) e CI su GitHub Actions; release automatica dello ZIP sul tag.
 
 ### 1.1.0

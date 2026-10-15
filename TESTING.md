@@ -12,8 +12,8 @@ entrambi. La release resta in `.github/workflows/release.yml`, sul tag `v*`.
 | **lint** | `php -l` su PHP 7.4 e 8.3 | ogni push/PR |
 | **phpcs** | WPCS Extra (sicurezza ed escaping bloccanti) + compatibilità PHP 7.4+ | ogni push/PR |
 | **unit** | policy, pulizia, redirect, launchpad, pagina di riepilogo; PHP 7.4–8.5 | ogni push/PR |
-| **integration** | WordPress + MySQL reali: 6.0, ultima versione, ultima versione multisite | dopo lint |
-| **e2e** | wp-env + Playwright: `.wp-env.json` e WordPress 5.8 (minimo dichiarato) | dopo lint, phpcs e unit |
+| **integration** | WordPress + MySQL reali: 6.0 (minimo dichiarato), ultima versione, ultima versione multisite | dopo lint |
+| **e2e** | wp-env + Playwright: `.wp-env.json` e WordPress 6.0 (minimo dichiarato) | dopo lint, phpcs e unit |
 
 `composer.lock` non è versionato (solo dipendenze di sviluppo); le dipendenze
 npm sono fissate da `package-lock.json`.
@@ -21,7 +21,7 @@ npm sono fissate da `package-lock.json`.
 ## Run notturna
 
 Ogni notte alle 04:27 UTC (e a mano da *Actions → Nightly*): E2E su
-WordPress trunk × PHP 8.3, ultima release × PHP 8.3 e 8.4, WordPress 5.8 ×
+WordPress trunk × PHP 8.3, ultima release × PHP 8.3 e 8.4, WordPress 6.0 ×
 PHP 8.1; integration su WordPress trunk × PHP 8.4.
 
 ## Perché questa struttura

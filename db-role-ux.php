@@ -4,7 +4,7 @@
  * Plugin URI:        https://www.davidebertolino.it/progetti/
  * Description:       Esperienza backend semplificata per gli utenti non-amministratori: pulizia della bacheca, della admin bar e del menu laterale, più il launchpad "Area riservata" per ruolo. Guidato da configurazione, fail-safe verso l'amministratore.
  * Version:           1.2.0
- * Requires at least: 5.8
+ * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Davide Bertolino
  * Author URI:        https://www.davidebertolino.it
