@@ -22,7 +22,7 @@ Per gli utenti target (predefinito: tutti i non amministratori):
 3. **Menu laterale** — rimuove le voci elencate in `admin_menu_pages` (vuoto per ora).
 4. **Redirect dopo il login** — disattivato; si accende da configurazione.
 5. **Shortcode `[db_area_riservata]`** — launchpad a card per capability (`db_area_docenti`, `db_area_alunni`, `ms_gestisci_moduli`). Chi non è loggato viene mandato al login.
-6. **Bacheca per ruolo** — da pannello, per ogni ruolo: widget da nascondere, widget da aggiungere, link nel menu laterale e nella admin bar (vedi sotto).
+6. **Bacheca per ruolo** — da pannello, per ogni ruolo: fascia di benvenuto con logo, widget da nascondere, widget da aggiungere, link nel menu laterale e nella admin bar (vedi sotto).
 
 ## Configurazione
 
@@ -52,6 +52,12 @@ Filtri disponibili: `db_role_ux_config`, `db_launchpad_cards`.
 
 In *Strumenti → DB Role UX → Bacheca per ruolo* scegli un ruolo e imposti:
 
+- **Fascia di benvenuto** in cima alla bacheca, sopra il titolo, con:
+  - logo: quello del sito (*Aspetto → Personalizza → Identità del sito*), un'immagine della Libreria media o nessuno. Se l'immagine non ha testo alternativo si usa il nome del sito;
+  - titolo e testo (HTML di base) con i segnaposto `{nome}` (nome dell'utente), `{ruolo}` (i suoi ruoli) e `{sito}` (nome del sito);
+  - colore d'accento, usato solo per la barra laterale: il testo resta scuro su bianco e il contrasto non dipende dal colore scelto.
+
+  Una fascia per ruolo, senza fascia predefinita: chi ha più ruoli vede quella del primo ruolo che ne ha una. Nel modulo c'è l'anteprima con un nome di esempio.
 - **Widget da nascondere** — spunti quelli rilevati in bacheca (il plugin annota ID e titolo dei widget quando qualcuno apre la bacheca) o scrivi gli ID a mano. Per il principio fail-safe, ai ruoli con `manage_options` non si nasconde nulla.
 - **Widget aggiunti**, in colonna principale o laterale, di tre tipi:
   - *Elenco di link*;
@@ -61,7 +67,7 @@ In *Strumenti → DB Role UX → Bacheca per ruolo* scegli un ruolo e imposti:
 
 I link si scrivono uno per riga, `Etichetta | URL`. L'URL può essere assoluto (`https://…`), una pagina del sito (`/area-riservata/`) o una pagina del backend (`edit.php?post_type=page`). Altri schemi (`javascript:`, `data:`…) vengono scartati.
 
-Un utente con più ruoli riceve l'unione delle impostazioni dei suoi ruoli. Widget e link aggiunti valgono anche per gli amministratori: aggiungono, non tolgono.
+Un utente con più ruoli riceve l'unione delle impostazioni dei suoi ruoli (la fascia, come detto, è una sola). Fascia, widget e link aggiunti valgono anche per gli amministratori: aggiungono, non tolgono.
 
 Le impostazioni stanno nell'opzione `db_role_ux_roles` ed entrano nella configurazione alla chiave `roles`, prima del filtro `db_role_ux_config`: un mu-plugin può sempre sovrascriverle (la scheda lo segnala).
 
@@ -78,11 +84,11 @@ Dalla tabella dei ruoli si passa direttamente alla bacheca di ciascun ruolo.
 
 ## Dati salvati e disinstallazione
 
-Il plugin non salva dati personali. Usa due opzioni:
+Il plugin non salva dati personali: nome e ruolo della fascia di benvenuto si leggono al momento e si mostrano solo all'utente stesso. Usa due opzioni:
 
 | Opzione | Contenuto |
 |---------|-----------|
-| `db_role_ux_roles` | impostazioni della bacheca per ruolo |
+| `db_role_ux_roles` | impostazioni della bacheca per ruolo (fascia di benvenuto compresa: ID del logo, testi, colore) |
 | `db_role_ux_seen_widgets` | ID, titolo e colonna dei widget rilevati in bacheca |
 
 Eliminando il plugin da *Plugin* le due opzioni vengono rimosse (su ogni sito, in multisite).
@@ -104,11 +110,11 @@ db-role-ux/
 │   ├── css/
 │   │   ├── db-admin-ui.css   design system condiviso dei plugin DB
 │   │   ├── admin.css         pagina Strumenti → DB Role UX
-│   │   └── dashboard.css     widget aggiunti in bacheca
-│   └── js/admin.js       campi per tipo di widget
+│   │   └── dashboard.css     fascia e widget aggiunti in bacheca
+│   └── js/admin.js       campi per tipo di widget, logo dalla Libreria media, colore
 └── inc/
     ├── settings.php      bacheca per ruolo: dati, sanitizzazione, unione
-    ├── role-dashboard.php bacheca per ruolo: widget, menu, admin bar
+    ├── role-dashboard.php bacheca per ruolo: fascia, widget, menu, admin bar
     ├── config.php        configurazione e selezione utenti
     ├── cleanup.php       bacheca, admin bar, menu, rifiniture
     ├── login-redirect.php
@@ -122,6 +128,10 @@ db-role-ux/
 Test unit, integration ed E2E (wp-env + Playwright) girano su GitHub Actions a ogni push e PR, più una run notturna su WordPress in sviluppo. Comandi e struttura in [TESTING.md](TESTING.md). I file di sviluppo (`tests/`, `bin/`, configurazioni) sono esclusi dallo ZIP della release.
 
 ## Changelog
+
+### 1.4.0
+- **Fascia di benvenuto per ruolo** in cima alla bacheca: logo (del sito, dalla Libreria media o nessuno), titolo e testo con i segnaposto `{nome}`, `{ruolo}`, `{sito}`, colore d'accento. Si imposta nella scheda *Bacheca per ruolo*, con anteprima.
+- Chi ha più ruoli vede la fascia del primo ruolo che ne ha una; nessuna fascia predefinita.
 
 ### 1.3.0
 - **Bacheca per ruolo**, da *Strumenti → DB Role UX*: per ogni ruolo widget da nascondere (scelti fra quelli rilevati o per ID), widget aggiunti (elenco di link, testo libero, card dell'Area riservata), link nel menu laterale e nella admin bar.

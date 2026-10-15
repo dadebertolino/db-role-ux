@@ -3,7 +3,7 @@
  * Plugin Name:       DB Role UX
  * Plugin URI:        https://www.davidebertolino.it/progetti/
  * Description:       Esperienza backend semplificata per gli utenti non-amministratori: pulizia della bacheca, della admin bar e del menu laterale, widget e link per ruolo, più il launchpad "Area riservata". Fail-safe verso l'amministratore.
- * Version:           1.3.0
+ * Version:           1.4.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Davide Bertolino
@@ -49,7 +49,7 @@ if ( function_exists( 'db_role_ux_config' ) ) {
 	return;
 }
 
-define( 'DB_ROLE_UX_VERSION', '1.3.0' );
+define( 'DB_ROLE_UX_VERSION', '1.4.0' );
 define( 'DB_ROLE_UX_FILE', __FILE__ );
 define( 'DB_ROLE_UX_DIR', plugin_dir_path( __FILE__ ) );
 
@@ -59,7 +59,7 @@ define( 'DB_ROLE_UX_DIR', plugin_dir_path( __FILE__ ) );
  *  - Script di terze parti: NO
  *  - Consenso utente:       NO
  *  - Dati nel database:     due opzioni, nessun dato personale:
- *      db_role_ux_roles        impostazioni per ruolo (widget e link della bacheca);
+ *      db_role_ux_roles        impostazioni per ruolo (widget, link e fascia della bacheca);
  *      db_role_ux_seen_widgets ID e titoli dei widget rilevati in bacheca.
  *    Rimosse da uninstall.php.
  */

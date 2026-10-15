@@ -57,3 +57,67 @@
 	color: #50575e;
 	font-size: 12px;
 }
+
+/* ------------------------------------------------------------
+ * Fascia di benvenuto
+ * Il colore d'accento colora solo la barra laterale (decorativa):
+ * il testo resta sempre scuro su bianco.
+ * ---------------------------------------------------------- */
+
+.db-role-ux-banner {
+	--db-role-ux-accent: #2271b1;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	margin: 20px 20px 0 0;
+	padding: 16px 20px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-left: 6px solid var(--db-role-ux-accent);
+	border-radius: 8px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+.db-role-ux-banner__media {
+	flex: 0 0 auto;
+}
+.db-role-ux-banner__logo {
+	display: block;
+	max-width: 180px;
+	max-height: 72px;
+	width: auto;
+	height: auto;
+}
+.db-role-ux-banner__body {
+	flex: 1 1 auto;
+	min-width: 0;
+	color: #1d2327;
+}
+.db-role-ux-banner__title {
+	margin: 0 0 4px;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+.db-role-ux-banner__text {
+	font-size: 14px;
+}
+.db-role-ux-banner__text > :first-child {
+	margin-top: 0;
+}
+.db-role-ux-banner__text > :last-child {
+	margin-bottom: 0;
+}
+
+@media screen and (max-width: 782px) {
+	.db-role-ux-banner {
+		flex-direction: column;
+		align-items: flex-start;
+		margin-right: 10px;
+	}
+}
+
+@media (forced-colors: active) {
+	.db-role-ux-banner {
+		border-left-color: CanvasText;
+	}
+}

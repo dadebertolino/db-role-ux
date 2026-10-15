@@ -42,6 +42,7 @@ function db_role_ux_empty_role_settings() {
 		'widgets'        => array(),
 		'menu_links'     => array(),
 		'adminbar_links' => array(),
+		'banner'         => array(),
 	);
 }
 
@@ -266,6 +267,47 @@ function db_role_ux_sanitize_widget( $widget ) {
 }
 
 /**
+ * Origini possibili del logo della fascia di benvenuto.
+ */
+const DB_ROLE_UX_BANNER_LOGOS = array(
+	'site'  => 'Logo del sito',
+	'media' => 'Immagine dalla Libreria media',
+	'none'  => 'Nessun logo',
+);
+
+/**
+ * Fascia di benvenuto in cima alla bacheca. Array vuoto = nessuna fascia.
+ *
+ * Titolo e testo possono contenere i segnaposto {nome}, {ruolo} e {sito},
+ * sostituiti al momento della visualizzazione. Il colore d'accento colora
+ * solo la barra laterale, mai il testo: il contrasto non dipende dalla scelta.
+ *
+ * @param mixed $raw Fascia grezza.
+ * @return array
+ */
+function db_role_ux_sanitize_banner( $raw ) {
+	if ( ! is_array( $raw ) || empty( $raw['enabled'] ) ) {
+		return array();
+	}
+
+	$logo    = isset( $raw['logo'] ) && is_string( $raw['logo'] ) && array_key_exists( $raw['logo'], DB_ROLE_UX_BANNER_LOGOS ) ? $raw['logo'] : 'site';
+	$logo_id = isset( $raw['logo_id'] ) && is_scalar( $raw['logo_id'] ) ? absint( $raw['logo_id'] ) : 0;
+	if ( 'media' === $logo && ! $logo_id ) {
+		$logo = 'site';
+	}
+	$color = isset( $raw['color'] ) && is_string( $raw['color'] ) ? sanitize_hex_color( trim( $raw['color'] ) ) : '';
+
+	return array(
+		'enabled' => true,
+		'logo'    => $logo,
+		'logo_id' => 'media' === $logo ? $logo_id : 0,
+		'title'   => isset( $raw['title'] ) ? sanitize_text_field( $raw['title'] ) : '',
+		'text'    => isset( $raw['text'] ) && is_scalar( $raw['text'] ) ? trim( wp_kses_post( (string) $raw['text'] ) ) : '',
+		'color'   => $color ? $color : '',
+	);
+}
+
+/**
  * Impostazioni complete di un ruolo. Gli ID dei widget mancanti o duplicati
  * vengono generati: servono a ritrovare il widget fra un salvataggio e
  * l'altro e come ID della meta box in bacheca (dbru_<id>).
@@ -304,6 +346,7 @@ function db_role_ux_sanitize_role_settings( array $raw ) {
 
 	$clean['menu_links']     = db_role_ux_sanitize_links( isset( $raw['menu_links'] ) ? $raw['menu_links'] : array(), true );
 	$clean['adminbar_links'] = db_role_ux_sanitize_links( isset( $raw['adminbar_links'] ) ? $raw['adminbar_links'] : array() );
+	$clean['banner']         = db_role_ux_sanitize_banner( isset( $raw['banner'] ) ? $raw['banner'] : array() );
 
 	return $clean;
 }
@@ -316,7 +359,8 @@ function db_role_ux_sanitize_role_settings( array $raw ) {
  */
 function db_role_ux_role_settings_empty( array $settings ) {
 	return empty( $settings['hide_widgets'] ) && empty( $settings['widgets'] )
-		&& empty( $settings['menu_links'] ) && empty( $settings['adminbar_links'] );
+		&& empty( $settings['menu_links'] ) && empty( $settings['adminbar_links'] )
+		&& empty( $settings['banner'] );
 }
 
 /**
@@ -347,7 +391,8 @@ function db_role_ux_save_role_settings( $role_slug, array $raw ) {
 /**
  * Impostazioni effettive per un utente: unione di quelle dei suoi ruoli,
  * nell'ordine dei ruoli. Widget senza duplicati per ID, link senza
- * duplicati per URL.
+ * duplicati per URL; la fascia di benvenuto è quella del primo ruolo che
+ * ne ha una.
  *
  * FAIL-SAFE: chi ha manage_options non ha widget da nascondere. Widget e
  * link aggiunti valgono invece per tutti: aggiungono, non tolgono.
@@ -376,6 +421,11 @@ function db_role_ux_user_role_settings( $user ) {
 		$settings = array_merge( db_role_ux_empty_role_settings(), $roles[ $role ] );
 
 		$merged['hide_widgets'] = array_merge( $merged['hide_widgets'], (array) $settings['hide_widgets'] );
+
+		// La fascia non si somma: vale quella del primo ruolo che ne ha una.
+		if ( empty( $merged['banner'] ) && ! empty( $settings['banner'] ) ) {
+			$merged['banner'] = (array) $settings['banner'];
+		}
 
 		foreach ( (array) $settings['widgets'] as $widget ) {
 			if ( isset( $widget['id'] ) && ! isset( $seen['widgets'][ $widget['id'] ] ) ) {

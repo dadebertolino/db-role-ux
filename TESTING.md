@@ -30,7 +30,10 @@ Il plugin decide **chi** vede un backend ridotto. L'errore da non fare mai è
 nascondere qualcosa all'amministratore (principio fail-safe), quindi ogni
 livello lo verifica:
 
-- **unit** — bacheca per ruolo: URL ammessi e scartati, parsing dei link,
+- **unit** — fascia di benvenuto: sanitizzazione, primo ruolo che vince,
+  segnaposto escapati, logo (scelto, del sito, senza alt, eliminato), solo
+  sulla schermata della bacheca, modulo, anteprima e salvataggio;
+  bacheca per ruolo: URL ammessi e scartati, parsing dei link,
   widget per tipo, ID univoci, unione dei ruoli, fail-safe su
   `manage_options`, filtro con l'ultima parola, modulo e salvataggio (nonce,
   capability, ruolo inesistente);
@@ -43,7 +46,9 @@ livello lo verifica:
   `WP_Admin_Bar`, meta box e `$menu` reali; super admin del multisite;
   filtro `login_redirect` di WordPress; shortcode con `do_shortcode()`;
   bacheca per ruolo con opzioni e meta box reali, widget aggiunti dopo la
-  tabula rasa, salvataggio con nonce veri, `uninstall.php` (anche multisite).
+  tabula rasa, salvataggio con nonce veri, `uninstall.php` (anche multisite);
+  fascia di benvenuto con un'immagine vera della Libreria media e con il
+  logo del sito.
 - **e2e** — ciò che vede davvero un sottoscrittore, un docente e un
   amministratore nel browser, più axe-core (WCAG 2.1 AA) su pagina di
   riepilogo e launchpad.
@@ -86,7 +91,8 @@ npm run test:e2e
 
 `bin/setup-e2e.sh` è idempotente: crea il ruolo `docente` (con
 `db_area_docenti`), gli utenti `docente` e `sottoscrittore` (password
-`password`) e la pagina con `[db_area_riservata]`.
+`password`) e la pagina con `[db_area_riservata]`; fissa il nome del sito e
+importa `tests/fixtures/logo-e2e.png` (alt "Logo E2E") come logo del sito.
 
 Il mu-plugin `tests/fixtures/db-role-ux-e2e-fixture.php` simula ciò che sul
 sito della scuola arriva da altri plugin e dal tema: i widget delle circolari
@@ -103,4 +109,5 @@ ruolo prima e dopo `role-dashboard.spec.js`.
 | `launchpad.spec.js` | ospite al login con ritorno, card per capability, messaggio senza card |
 | `admin-page.spec.js` | pagina di riepilogo, link nella lista plugin, 403 per i non admin |
 | `role-dashboard.spec.js` | bacheca per ruolo dal pannello alla bacheca: rilevazione dei widget, campi per tipo, widget nascosti e aggiunti, menu e admin bar per il docente; sottoscrittore e admin invariati; axe-core su modulo e widget |
+| `banner.spec.js` | fascia di benvenuto: selettore della Libreria media e color picker nel modulo, anteprima; docente con immagine scelta, sottoscrittore con logo del sito, admin senza fascia; posizione sopra il titolo; axe-core su modulo e fascia |
 | `a11y.spec.js` | axe-core WCAG 2.1 AA sull'output del plugin |
