@@ -30,14 +30,20 @@ Il plugin decide **chi** vede un backend ridotto. L'errore da non fare mai è
 nascondere qualcosa all'amministratore (principio fail-safe), quindi ogni
 livello lo verifica:
 
-- **unit** — `db_role_ux_policy_matches()` in tutte le modalità
+- **unit** — bacheca per ruolo: URL ammessi e scartati, parsing dei link,
+  widget per tipo, ID univoci, unione dei ruoli, fail-safe su
+  `manage_options`, filtro con l'ultima parola, modulo e salvataggio (nonce,
+  capability, ruolo inesistente);
+  `db_role_ux_policy_matches()` in tutte le modalità
   (`non_admin`, `roles`, `capability`, sconosciuta), `manage_options` sempre
   escluso anche se assegnato al singolo utente; i callback di pulizia
   chiamati solo per gli utenti target; escape dell'output del launchpad
   (card dal filtro con HTML e `javascript:`); pagina di riepilogo.
 - **integration** — gli stessi contratti con `WP_User`, `WP_Role`,
   `WP_Admin_Bar`, meta box e `$menu` reali; super admin del multisite;
-  filtro `login_redirect` di WordPress; shortcode con `do_shortcode()`.
+  filtro `login_redirect` di WordPress; shortcode con `do_shortcode()`;
+  bacheca per ruolo con opzioni e meta box reali, widget aggiunti dopo la
+  tabula rasa, salvataggio con nonce veri, `uninstall.php` (anche multisite).
 - **e2e** — ciò che vede davvero un sottoscrittore, un docente e un
   amministratore nel browser, più axe-core (WCAG 2.1 AA) su pagina di
   riepilogo e launchpad.
@@ -85,8 +91,10 @@ npm run test:e2e
 Il mu-plugin `tests/fixtures/db-role-ux-e2e-fixture.php` simula ciò che sul
 sito della scuola arriva da altri plugin e dal tema: i widget delle circolari
 con gli ID `0`–`3`, le voci `design-scuole` e `manuale` della admin bar, più
-un widget e una voce **non** dichiarati che devono restare. Accende anche il
-redirect post-login verso `/area-riservata/`.
+un widget (`e2e_widget_libero`) e una voce **non** dichiarati che devono
+restare. Accende anche il redirect post-login verso `/area-riservata/` ed
+espone `POST /?rest_route=/dbru-e2e/v1/reset`, che azzera la bacheca per
+ruolo prima e dopo `role-dashboard.spec.js`.
 
 | Spec | Cosa copre |
 |------|------------|
@@ -94,4 +102,5 @@ redirect post-login verso `/area-riservata/`.
 | `login-redirect.spec.js` | sottoscrittore e docente sull'Area riservata, admin nella bacheca |
 | `launchpad.spec.js` | ospite al login con ritorno, card per capability, messaggio senza card |
 | `admin-page.spec.js` | pagina di riepilogo, link nella lista plugin, 403 per i non admin |
+| `role-dashboard.spec.js` | bacheca per ruolo dal pannello alla bacheca: rilevazione dei widget, campi per tipo, widget nascosti e aggiunti, menu e admin bar per il docente; sottoscrittore e admin invariati; axe-core su modulo e widget |
 | `a11y.spec.js` | axe-core WCAG 2.1 AA sull'output del plugin |

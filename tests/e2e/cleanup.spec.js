@@ -18,7 +18,7 @@ test.describe( 'sottoscrittore', () => {
 		for ( const id of CIRCOLARI ) {
 			await expect( page.locator( `.postbox[id="${ id }"]` ) ).toHaveCount( 0 );
 		}
-		await expect( page.locator( '#dbru_e2e_keep' ) ).toBeVisible();
+		await expect( page.locator( '#e2e_widget_libero' ) ).toBeVisible();
 	} );
 
 	test( 'bacheca: una colonna, niente Aiuto né Impostazioni schermata', async ( { page } ) => {

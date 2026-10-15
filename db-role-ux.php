@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       DB Role UX
  * Plugin URI:        https://www.davidebertolino.it/progetti/
- * Description:       Esperienza backend semplificata per gli utenti non-amministratori: pulizia della bacheca, della admin bar e del menu laterale, più il launchpad "Area riservata" per ruolo. Guidato da configurazione, fail-safe verso l'amministratore.
- * Version:           1.2.0
+ * Description:       Esperienza backend semplificata per gli utenti non-amministratori: pulizia della bacheca, della admin bar e del menu laterale, widget e link per ruolo, più il launchpad "Area riservata". Fail-safe verso l'amministratore.
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Davide Bertolino
@@ -49,22 +49,27 @@ if ( function_exists( 'db_role_ux_config' ) ) {
 	return;
 }
 
-define( 'DB_ROLE_UX_VERSION', '1.2.0' );
+define( 'DB_ROLE_UX_VERSION', '1.3.0' );
 define( 'DB_ROLE_UX_FILE', __FILE__ );
 define( 'DB_ROLE_UX_DIR', plugin_dir_path( __FILE__ ) );
 
 /**
  * Privacy capabilities:
- *  - Dati personali:        NO — legge solo ruoli/capability dell'utente corrente, non salva nulla.
+ *  - Dati personali:        NO — legge solo ruoli/capability dell'utente corrente.
  *  - Script di terze parti: NO
  *  - Consenso utente:       NO
- *  - Dati nel database:     NESSUNO — niente opzioni, tabelle o meta: non serve uninstall.php.
+ *  - Dati nel database:     due opzioni, nessun dato personale:
+ *      db_role_ux_roles        impostazioni per ruolo (widget e link della bacheca);
+ *      db_role_ux_seen_widgets ID e titoli dei widget rilevati in bacheca.
+ *    Rimosse da uninstall.php.
  */
 
+require_once DB_ROLE_UX_DIR . 'inc/settings.php';
 require_once DB_ROLE_UX_DIR . 'inc/config.php';
 require_once DB_ROLE_UX_DIR . 'inc/cleanup.php';
 require_once DB_ROLE_UX_DIR . 'inc/login-redirect.php';
 require_once DB_ROLE_UX_DIR . 'inc/launchpad.php';
+require_once DB_ROLE_UX_DIR . 'inc/role-dashboard.php';
 
 if ( is_admin() ) {
 	require_once DB_ROLE_UX_DIR . 'inc/admin.php';

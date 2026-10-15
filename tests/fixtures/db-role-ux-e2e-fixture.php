@@ -13,6 +13,9 @@
  * Il redirect post-login è acceso verso /area-riservata/ (in produzione è
  * spento di default: quel caso è coperto dagli unit test).
  *
+ * REST POST /dbru-e2e/v1/reset azzera la bacheca per ruolo fra uno spec e
+ * l'altro.
+ *
  * @package DB_Role_UX\Tests\Fixtures
  */
 
@@ -30,7 +33,7 @@ add_action(
 		wp_add_dashboard_widget( '1', 'Notifiche nuove circolari', $render );
 		wp_add_dashboard_widget( '2', 'Circolari firmate', $render );
 		wp_add_dashboard_widget( '3', 'Menu utente', $render );
-		wp_add_dashboard_widget( 'dbru_e2e_keep', 'Widget non dichiarato', $render );
+		wp_add_dashboard_widget( 'e2e_widget_libero', 'Widget non dichiarato', $render );
 	}
 );
 
@@ -74,5 +77,28 @@ add_filter(
 			'url'     => home_url( '/area-riservata/' ),
 		);
 		return $config;
+	}
+);
+
+/**
+ * REST POST /dbru-e2e/v1/reset → azzera la bacheca per ruolo (impostazioni e
+ * widget rilevati), per far partire ogni spec da uno stato noto.
+ */
+add_action(
+	'rest_api_init',
+	function () {
+		register_rest_route(
+			'dbru-e2e/v1',
+			'/reset',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => '__return_true',
+				'callback'            => function () {
+					delete_option( 'db_role_ux_roles' );
+					delete_option( 'db_role_ux_seen_widgets' );
+					return array( 'ok' => true );
+				},
+			)
+		);
 	}
 );
